@@ -1,0 +1,23 @@
+{
+    "symbol": "ETHBTC",
+    "priceChange": "0.00034700",
+    "priceChangePercent": "0.467",
+    "weightedAvgPrice": "0.07418533",
+    "prevClosePrice": "0.07429200",
+    "lastPrice": "0.07464300",
+    "lastQty": "3.32760000",
+    "bidPrice": "0.07464300",
+    "bidQty": "8.89280000",
+    "askPrice": "0.07464400",
+    "askQty": "10.17360000",
+    "openPrice": "0.07429600",
+    "highPrice": "0.07539400",
+    "lowPrice": "0.07312600",
+    "volume": "114373.48490000",
+    "quoteVolume": "8484.83424789",
+    "openTime": 1661119909692,
+    "closeTime": 1661206309692,
+    "firstId": 366183759,
+    "lastId": 366470428,
+    "count": 286670
+  }
