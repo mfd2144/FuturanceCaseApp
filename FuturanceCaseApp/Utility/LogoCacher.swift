@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class LogoCacher {
+final class LogoCacher {
     static let shared = LogoCacher()
     private let cache = NSCache<NSString, NSData>()
     private let dolarImage = UIImage(systemName: "dollarsign.circle")!.withTintColor(buttonGreen, renderingMode: .alwaysOriginal)

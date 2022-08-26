@@ -42,6 +42,8 @@
 		BADB848928B43B580029AD50 /* ModelTester.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADB848828B43B580029AD50 /* ModelTester.swift */; };
 		BADB849428B43FE70029AD50 /* massData.json in Resources */ = {isa = PBXBuildFile; fileRef = BADB849328B43FE70029AD50 /* massData.json */; };
 		BADB849528B441A20029AD50 /* CurrencyResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = BADB848C28B43F360029AD50 /* CurrencyResponse.swift */; };
+		BAFCFA7428B897610074C9BA /* MyWallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFCFA7328B897610074C9BA /* MyWallet.swift */; };
+		BAFCFA7628B899410074C9BA /* WalletManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAFCFA7528B899410074C9BA /* WalletManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -108,6 +110,8 @@
 		BADB848828B43B580029AD50 /* ModelTester.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelTester.swift; sourceTree = "<group>"; };
 		BADB848C28B43F360029AD50 /* CurrencyResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyResponse.swift; sourceTree = "<group>"; };
 		BADB849328B43FE70029AD50 /* massData.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = massData.json; sourceTree = "<group>"; };
+		BAFCFA7328B897610074C9BA /* MyWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyWallet.swift; sourceTree = "<group>"; };
+		BAFCFA7528B899410074C9BA /* WalletManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				BABA50D528B69D9C008D51C7 /* CurrencyPresentation.swift */,
+				BAFCFA7328B897610074C9BA /* MyWallet.swift */,
 			);
 			path = Presentations;
 			sourceTree = "<group>";
@@ -228,6 +233,7 @@
 			children = (
 				BACEF1CF28B5611C00EA0F84 /* Constant.swift */,
 				BABA50DA28B6C394008D51C7 /* LogoCacher.swift */,
+				BAFCFA7528B899410074C9BA /* WalletManager.swift */,
 				BABA50CF28B654CF008D51C7 /* Arrow.swift */,
 				BABA50D828B6A478008D51C7 /* FuturanceErrors.swift */,
 				BA8E87D128B8122F0056C4CB /* SelectedButton.swift */,
@@ -492,6 +498,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BAFCFA7628B899410074C9BA /* WalletManager.swift in Sources */,
 				BA8E87D028B7FE380056C4CB /* UIView.swift in Sources */,
 				BADB848328B439A30029AD50 /* Decoder.swift in Sources */,
 				BABA50D028B654CF008D51C7 /* Arrow.swift in Sources */,
@@ -520,6 +527,7 @@
 				BADB83F128B405F00029AD50 /* SceneDelegate.swift in Sources */,
 				BABA50D928B6A478008D51C7 /* FuturanceErrors.swift in Sources */,
 				BA3F1B6728B6D6E000AADA78 /* CurrencyImagesResponse.swift in Sources */,
+				BAFCFA7428B897610074C9BA /* MyWallet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

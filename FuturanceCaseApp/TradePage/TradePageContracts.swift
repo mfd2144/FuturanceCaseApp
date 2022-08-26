@@ -8,9 +8,8 @@
 import Foundation
 
 // View
-
 protocol TradeViewProtocol: AnyObject {
-    func handlePresenterOutputs(_ outputs: TradePresenterOutputs)
+    func handleOutputs(_ outputs: TradePresenterOutputs)
 }
     
 // Presenter
@@ -19,15 +18,20 @@ protocol TradePresenterProtocol: AnyObject {
     var view: TradeViewProtocol? { get set }
     
     func load()
-    func buyPressed(for qty: Double, from currecyType: String)
-    func sellPressed(for qty: Double, to currecyType: String)
+    func buyPressed()
+    func sellPressed()
+    func refreshPressed()
+    func mainButtonPressed()
+    func cellSelected(_ currenctPresentation: CurrencyPresentation)
 }
 
 enum TradePresenterOutputs {
     case isLoading(Bool)
     case returnCurrenciesData([CurrencyPresentation])
     case anyError(String)
-    case totalEntity([String: String])
+    case totalEntity(MyWallet)
+    case afterSelectedButtonChange(SelectedButton)
+    case afterCoinSelected(CurrencyPresentation)
 }
 
 // Interaction
@@ -36,8 +40,7 @@ protocol TradeInteractorProtocol: AnyObject {
     var presenter: TradeInteractorDelegate? { get set }
     
     func load()
-    func buyPressed(for qty: Double, from currecyType: String)
-    func sellPressed(for qty: Double, to currecyType: String)
+
 }
 
 protocol TradeInteractorDelegate: AnyObject {
@@ -49,7 +52,7 @@ enum TradeInteractorOutputs {
     case returnCurrenciesData([Currency])
     case returnOtherInformations([CurrencyOtherInformations])
     case anyError(FuturanceError)
-    case totalEntity([String: String])
+    case totalEntity(MyWallet)
 }
 // Router
 // We don't need router for this project

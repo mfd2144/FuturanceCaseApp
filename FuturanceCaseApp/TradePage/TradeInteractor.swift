@@ -9,6 +9,7 @@ import Foundation
 import Combine
 
 final class TradeInteractor: TradeInteractorProtocol {
+    
     weak var presenter: TradeInteractorDelegate?
     
     func load() {

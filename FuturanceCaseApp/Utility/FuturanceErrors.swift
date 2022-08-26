@@ -11,6 +11,8 @@ enum FuturanceError: Error {
     case convertPresentationError(String)
     case fetchingBinanceDataError(String)
     case fetchingOtherInformationsError(String)
+    case doesntHaveEnoughAmountMoney
+    case emptyURL
     
     var localDescription: String {
         switch self {
@@ -20,6 +22,10 @@ enum FuturanceError: Error {
             return "Binance adresinden yükleme hatası: \(error)"
         case.fetchingOtherInformationsError(let error):
             return "Coinlerin ikonlarının adresleri çekilemedi: \(error)"
+        case.doesntHaveEnoughAmountMoney:
+            return "Yeterli bakiye yok."
+        case.emptyURL:
+            return "Dosya yolu bulunamadı."
         }
     }
 }

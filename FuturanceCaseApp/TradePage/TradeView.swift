@@ -6,14 +6,11 @@
 //
 
 import UIKit
-import Combine
+
 
 final class TradeView: UIViewController {
     // MARK: - Properties
     var presenter: TradePresenterProtocol!
-    private var subscriptions = Set<AnyCancellable>()
-    private let selectedButton = PassthroughSubject<SelectedButton, Never>()
-    private let selectedCoin = PassthroughSubject<CurrencyPresentation, Never>()
     private var buttonString: String! {
         didSet {
             mainButton.setTitle(buttonString, for: .normal)
@@ -142,18 +139,23 @@ final class TradeView: UIViewController {
     }()
     let walletImage: UIImageView = {
         let imageV = UIImageView()
-        imageV.image = UIImage(systemName: "bag")
+        imageV.image = UIImage(named: "wallet")?.withTintColor(.gray, renderingMode: .alwaysOriginal)
         imageV.contentMode = .scaleAspectFit
+        imageV.translatesAutoresizingMaskIntoConstraints = false
         return imageV
     }()
     let amountInWallet: UILabel = {
         let label = UILabel()
-        label.text = "değiştir"
+        label.textAlignment = .right
+        let wallet = WalletManager.shared.myWallet.value.entities
+        label.text = "\( wallet.first!.amount) \( wallet.first!.name) "
+        
         return label
     }()
     let walletStack: UIStackView = {
         let stack = UIStackView()
-        stack.distribution = .fillEqually
+        stack.distribution = .fillProportionally
+        stack.alignment = .fill
         stack.spacing = 5
         stack.axis = .horizontal
         return stack
@@ -182,11 +184,10 @@ extension TradeView {
         setNavigationBar()
         setButton()
         setTableView()
-        setCombine()
+        buttonString = "AL"
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        subscriptions.removeAll()
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -203,32 +204,27 @@ extension TradeView {
     private func setButton() {
         buyButton.addTarget(self, action: #selector(buyButtonPressed(_:)), for: .touchUpInside)
         sellButton.addTarget(self, action: #selector(sellButtonPressed(_:)), for: .touchUpInside)
+        mainButton.addTarget(self, action: #selector(mainButtonPressed), for: .touchUpInside)
     }
     private func addSubviews() {
         // sell and buy button
         tradeButtonsStack.addArrangedSubview(buyButton)
         tradeButtonsStack.addArrangedSubview(sellButton)
-        
         // 24h High
         highRateStack.addArrangedSubview(labelHighStatic)
         highRateStack.addArrangedSubview(labelHighValue)
-        
         // 24h low
         lowRateStack.addArrangedSubview(labelLowStatic)
         lowRateStack.addArrangedSubview(labelLowValue)
-        
         // rates stack
         rateStack.addArrangedSubview(highRateStack)
         rateStack.addArrangedSubview(lowRateStack)
-        
         // 1.top stack
         buttonStack.addArrangedSubview(tradeButtonsStack)
         buttonStack.addArrangedSubview(rateStack)
-        
         // 2. wallet stack
         walletStack.addArrangedSubview(walletImage)
         walletStack.addArrangedSubview(amountInWallet)
-        
         // main stack
         mainStack.addArrangedSubview(buttonStack)
         mainStack.addArrangedSubview(walletStack)
@@ -236,7 +232,6 @@ extension TradeView {
         mainStack.addArrangedSubview(textFieldTRY)
         mainStack.addArrangedSubview(emptyView)
         mainStack.addArrangedSubview(mainButton)
-        
         // main view
         view.addSubview(mainStack)
         view.addSubview(tableView)
@@ -259,7 +254,8 @@ extension TradeView {
             coinLabel.widthAnchor.constraint(equalToConstant: screenWidth / 3),
             coinLabel.heightAnchor.constraint(equalTo: textFieldCoin.heightAnchor),
             coinLabel.centerYAnchor.constraint(equalTo: textFieldCoin.centerYAnchor),
-            coinLabel.leadingAnchor.constraint(equalTo:view.leadingAnchor, constant: screenWidth / 2 )
+            coinLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: screenWidth / 2 ),
+            walletImage.widthAnchor.constraint(equalTo: walletImage.heightAnchor)
         ])
         print(buttonStack.frame.height)
     }
@@ -294,59 +290,6 @@ extension TradeView {
         navBottom.layer.insertSublayer(cornerLayer, at: 1)
         view.addSubview(navBottom)
     }
-    private func setCombine() {
-        buttonString = "AL"
-        selectedButton.sink { _ in
-        } receiveValue: { button in
-            switch button {
-            case.buy:
-                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) { [weak self] in
-                    guard let self = self else { return }
-                    self.buyButton.backgroundColor = buttonGreen
-                    self.buyButton.setTitleColor(.white, for: .normal)
-                    self.sellButton.backgroundColor = darkGray
-                    self.sellButton.setTitleColor(.darkGray, for: .normal)
-                    self.mainButton.backgroundColor = buttonGreen
-                    if self.buttonString.contains("SAT") {
-                        self.buttonString = self.buttonString.replacingOccurrences(of: "SAT", with: "AL")
-                    }
-                }
-                
-            case.sell:
-                UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {[weak self] in
-                    guard let self = self else { return }
-                    self.sellButton.backgroundColor = buttonRed
-                    self.sellButton.setTitleColor(.white, for: .normal)
-                    self.buyButton.backgroundColor = darkGray
-                    self.buyButton.setTitleColor(.darkGray, for: .normal)
-                    self.mainButton.backgroundColor = buttonRed
-                    if self.buttonString.contains("AL") {
-                        self.buttonString = self.buttonString.replacingOccurrences(of: "AL", with: "SAT")
-                    }
-                }
-                
-            }
-        }.store(in: &subscriptions)
-        
-        selectedCoin.sink { _ in
-        } receiveValue: { coin in
-            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {[weak self] in
-                guard let self = self else { return }
-                self.labelHighValue.text = "\(coin.highPrice)"
-                self.labelLowValue.text = "\(coin.lowPrice)"
-                self.coinLabel.text = "\(coin.symbolFrom) Miktarı"
-               if self.buttonString.split(separator: " ").count > 1 {
-                   guard let lastPart = self.buttonString.split(separator: " ").last else { return }
-                   self.buttonString = "\(coin.symbolFrom) \(lastPart)"
-               } else {
-                   self.buttonString = "\(coin.symbolFrom) \(self.buttonString!)"
-               }
-                
-            }
-        }.store(in: &subscriptions)
-        // preselect button
-        selectedButton.send(.buy)
-    }
     @objc
     private func backButtonPressed() {
         print("geri düğmesine basıldı")
@@ -357,16 +300,19 @@ extension TradeView {
     }
     @objc
     private func buyButtonPressed(_ sender: UIButton) {
-        selectedButton.send(.buy)
+        presenter.buyPressed()
     }
     @objc
     private func sellButtonPressed(_ sender: UIButton) {
-        selectedButton.send(.sell)
+        presenter.sellPressed()
     }
     @objc
     private func refresh() {
-        print("refreshhhh")
-        refreshController.endRefreshing()
+        presenter.refreshPressed()
+    }
+    @objc
+    private func mainButtonPressed() {
+        presenter.mainButtonPressed()
     }
 }
 extension TradeView: UITableViewDelegate, UITableViewDataSource, EntityCellDelegate {
@@ -386,7 +332,7 @@ extension TradeView: UITableViewDelegate, UITableViewDataSource, EntityCellDeleg
     }
     
     func cellPressed(_ currencyTapped: CurrencyPresentation) {
-        selectedCoin.send(currencyTapped)
+        presenter.cellSelected(currencyTapped)
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -400,7 +346,7 @@ extension TradeView: UITableViewDelegate, UITableViewDataSource, EntityCellDeleg
 }
 // MARK: - TradeViewProtocol
 extension TradeView: TradeViewProtocol {
-    func handlePresenterOutputs(_ outputs: TradePresenterOutputs) {
+    func handleOutputs(_ outputs: TradePresenterOutputs) {
         switch outputs {
         case .isLoading(let isLoading):
             print(isLoading)
@@ -408,13 +354,41 @@ extension TradeView: TradeViewProtocol {
             DispatchQueue.main.async {
                 self.currencyPresantations = currencies
                 self.tableView.reloadData()
-                guard let firstElement = currencies.first else { return }
-                self.selectedCoin.send(firstElement)
             }
         case .anyError(let errorString):
             print(errorString)
         case .totalEntity(let myWallet):
             print(myWallet)
+        case .afterSelectedButtonChange( let selectedButton):
+            setAfterButtonSelect(button: selectedButton)
+        case .afterCoinSelected(let coin):
+                        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {[weak self] in
+                            self?.labelHighValue.text = "\(coin.highPrice)"
+                            self?.labelLowValue.text = "\(coin.lowPrice)"
+                            self?.coinLabel.text = "\(coin.symbolFrom) Miktarı"
+                           if let count = self?.buttonString.split(separator: " ").count, count > 1 {
+                               guard let lastPart = self?.buttonString.split(separator: " ").last else { return }
+                               self?.buttonString = "\(coin.symbolFrom) \(lastPart)"
+                           } else {
+                               self?.buttonString = "\(coin.symbolFrom) \(String(describing: self?.buttonString!))"
+                           }
+            
+                        }
+        }
+    }
+    private func setAfterButtonSelect(button: SelectedButton) {
+        let logic = button == .buy ? true : false
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut) {
+            self.buyButton.backgroundColor = logic ? buttonGreen : darkGray
+            self.buyButton.setTitleColor(logic ? .white : .darkGray, for: .normal)
+            self.sellButton.backgroundColor = logic ? darkGray : buttonRed
+            self.sellButton.setTitleColor(logic ? .darkGray : .white, for: .normal)
+            self.mainButton.backgroundColor = logic ? buttonGreen : buttonRed
+            if self.buttonString.contains("SAT") {
+                self.buttonString = self.buttonString.replacingOccurrences(of: "SAT", with: "AL")
+            } else if self.buttonString.contains("AL") {
+                self.buttonString = self.buttonString.replacingOccurrences(of: "AL", with: "SAT")
+            }
         }
     }
 }
