@@ -1,6 +1,0 @@
-framework module Pods_FuturanceCaseApp {
-  umbrella header "Pods-FuturanceCaseApp-umbrella.h"
-
-  export *
-  module * { export * }
-}
