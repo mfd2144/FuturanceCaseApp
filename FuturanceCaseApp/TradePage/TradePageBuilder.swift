@@ -13,11 +13,14 @@ final class TradePageBuilder {
         let view = TradeView()
         let presenter = TradePresenter()
         let interactor = TradeInteractor()
+        let router = TradeRouter()
         
         view.presenter = presenter
         presenter.view = view
+        presenter.router = router
         interactor.presenter = presenter
         presenter.interactor = interactor
+        router.view = view
         return view
     }
 }

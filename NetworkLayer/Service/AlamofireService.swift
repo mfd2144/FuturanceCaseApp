@@ -32,7 +32,8 @@ final class AlamofireService: AlamofireServiceProtocol {
                                  method: route.method,
                                  parameters: route.param,
                                  headers: route.header,
-                                 interceptor: nil)
+                                 interceptor: nil,
+                                 requestModifier: { $0.timeoutInterval = 10 })
         return request
     }
 }

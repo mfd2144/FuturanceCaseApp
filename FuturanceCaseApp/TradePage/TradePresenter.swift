@@ -9,8 +9,10 @@ import Foundation
 import Combine
 
 final class TradePresenter: TradePresenterProtocol {
+    
     weak var view: TradeViewProtocol?
     var interactor: TradeInteractorProtocol!
+    var router: TradeRouterProtocol!
     
     private var subscriptions = Set<AnyCancellable>()
     private let selectedButton = PassthroughSubject<SelectedButton, Never>()
@@ -29,32 +31,34 @@ final class TradePresenter: TradePresenterProtocol {
     
     func buyPressed() {
         selectedButton.send(.buy)
-        print("buy")
     }
     
     func sellPressed() {
         selectedButton.send(.sell)
-        print("sell")
- 
     }
     func refreshPressed() {
-        
+        interactor.refresh()
     }
     func mainButtonPressed() {
-        //        WalletManager.shared.buyEntity(entity:.init(name: "BTC", amount: 1), rate: 25){result in
-        //            switch result{
-        //            case.success(let successResult):
-        //                print(successResult)
-        //            case.error(let error):
-        //                print((error as? FuturanceError)?.localDescription)
-        //            }
-        //
-        //        }
+        print(subscriptions.count)
+        print(subscriptions.first.publisher)
     }
     func cellSelected(_ currenctPresentation: CurrencyPresentation) {
         selectedCoin.send(currenctPresentation)
     }
+    func mainButtonPressed(to selectedCurrency: CurrencyPresentation, for amount: Double, by button: SelectedButton) {
+        let entity = Entity(name: selectedCurrency.symbolFrom, amount: amount)
+        let rate = selectedCurrency.lastPrice
+        interactor.mainButtonPressed(entity, for: rate, button: button)
+    }
+    func showFeedback(_ feedback: Feedback) {
+        router.routeToPage(.anyFeedback(feedback))
+    }
+    func showWallet() {
+        router.routeToPage(.showWallet)
+    }
     private func bindData() {
+        self.selectedButton.send(.buy)
         // 1. check first currency data from binance
         guard  currencyPresentations != nil else { return }
         // 2. check other information was fetched or not
@@ -90,21 +94,20 @@ extension TradePresenter: TradeInteractorDelegate {
                     let model = try CurrencyPresentation($0)
                     presentation.append(model)
                 } catch {
-                    view?.handleOutputs(.anyError((error as? FuturanceError)!.localDescription))
+                    view?.handleOutputs(.feedbackToView(Feedback.error("Presentation objesi oluşturulamadı")))
                 }
             }
             currencyPresentations = presentation
             bindData()
-        case .anyError(let futuranceError):
-            // check
-            view?.handleOutputs(.anyError(futuranceError.localDescription))
+        
         case .returnOtherInformations(let informations):
             self.otherInformations = informations
             bindData()
-        case .totalEntity( let myWallet):
-            view?.handleOutputs(.totalEntity(myWallet))
-   
-    } 
+        case .walletChange:
+            view?.handleOutputs(.walletChange)
+        case .feedbackToPresenter(let feedBack):
+            view?.handleOutputs(.feedbackToView(feedBack))
+        }
 }
 }
 // MARK: - Combine Jobs
@@ -127,13 +130,9 @@ extension TradePresenter {
             self.view?.handleOutputs(.afterCoinSelected(coin))
         }.store(in: &subscriptions)
         
-        WalletManager.shared.myWallet.sink { _ in } receiveValue: { wallet in
-            print(wallet)
-//            wallet.entities.forEach({
-//                self.coinLabel.text?.append("\($0.amount) \($0.name) ")
-//                
-//            })
+        WalletManager.shared.myWallet.sink { _ in } receiveValue: {[weak self] _ in
+            guard let self = self else { return }
+            self.view?.handleOutputs(.walletChange)
         }.store(in: &subscriptions)
-        // preselect button
     }
 }

@@ -11,11 +11,13 @@ import Combine
 final class WalletManager {
     static let shared = WalletManager()
     var myWallet = CurrentValueSubject<MyWallet, Never>(MyWallet(entities: [.init(name: "TRY", amount: 2000)]))
-    
     var subscriptions = Set<AnyCancellable>()
     private var url: URL? {
         let fileManager = FileManager.default
         return fileManager.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("MyWallet.plist")
+    }
+    var tryEntity: Entity? {
+            return myWallet.value.entities.first(where: { $0.name.lowercased() == "try" })
     }
     
     private init() {}
@@ -81,7 +83,7 @@ final class WalletManager {
             myWallet.send(newWallet)
             let data = try encoder.encode(newWallet)
             try data.write(to: url)
-            completion(.success("Başarıyla \(entity.amount) tane \(entity.name) coinden alış yapıldı."))
+            completion(.success("Başarıyla \(entity.amount) tane \(entity.name)'den alındı."))
         } catch {
             fatalError("Fetch wallet data error")
         }
@@ -130,14 +132,26 @@ final class WalletManager {
         // 5. adjust new wallet
         oldEntities[tryIndex].amount += calculatedNewTRYBalance
         oldEntities[entityIndex].amount = calculatedRemaningEntity
-        let newWallet = MyWallet(entities: oldEntities)
-        
+        var newWallet: MyWallet!
+        if calculatedRemaningEntity == 0 {
+            // Sell all token
+            oldEntities.remove(at: entityIndex)
+            newWallet = MyWallet(entities: oldEntities)
+        } else if calculatedRemaningEntity <= 5e-10 {
+            // automatically convert token because of small amount
+            oldEntities[tryIndex].amount += rate * calculatedRemaningEntity
+            oldEntities.remove(at: entityIndex)
+            newWallet = MyWallet(entities: oldEntities)
+        } else {
+            // still have some token in wallet
+            newWallet = MyWallet(entities: oldEntities)
+        }
         // 6. write wallet information and send to subscribers
         do {
         myWallet.send(newWallet)
         let data = try encoder.encode(newWallet)
         try data.write(to: url)
-        completion(.success("Başarıyla \(entity.amount) tane \(entity.name) coinden alış yapıldı."))
+        completion(.success("Başarıyla \(entity.amount) tane \(entity.name)'den satıldı."))
     } catch {
         fatalError("Fetch wallet data error")
     }
@@ -157,7 +171,5 @@ final class WalletManager {
         let calculatedRemaningEntity = entity.amount - willSellEntity.amount
         let calculatedNewTRYBalance = entityRate * willSellEntity.amount
         return (calculatedNewTRYBalance, calculatedRemaningEntity)
-       
-        
     }
 }

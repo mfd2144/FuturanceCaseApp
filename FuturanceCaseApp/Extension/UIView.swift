@@ -27,4 +27,32 @@ func keyboardSwipeView() {
             self.frame.size.height += difference
         }, completion: nil)
     }
+    
+    public func showLoadingIndicator() {
+        let indicator = UIActivityIndicatorView(frame: self.frame)
+        let transpranView = UIImageView()
+        transpranView.tag = 144
+        indicator.tag = 244
+        transpranView.frame = self.bounds
+        transpranView.backgroundColor = UIColor.black
+        transpranView.isUserInteractionEnabled = true
+        transpranView.alpha = 0.5
+        indicator.style = UIActivityIndicatorView.Style.large
+        indicator.center = transpranView.center
+        indicator.startAnimating()
+        indicator.color = .systemTeal
+        DispatchQueue.main.async {
+            self.addSubview(transpranView)
+            self.addSubview(indicator)
+            self.bringSubviewToFront(transpranView)
+            self.bringSubviewToFront(indicator)
+        }
+    }
+    public func hideLoadingIndıcator() {
+        DispatchQueue.main.async { [self] in
+            viewWithTag(144)?.removeFromSuperview()
+            viewWithTag(244)?.removeFromSuperview()
+        }
+    }
+    
 }
