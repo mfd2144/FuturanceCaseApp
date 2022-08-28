@@ -205,6 +205,8 @@ extension TradeView {
         setButton()
         setTableView()
         buttonString = "AL"
+        textFieldCoin.delegate = self
+        textFieldTRY.delegate = self
     }
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -345,24 +347,35 @@ extension TradeView {
     }
     @objc
     private func mainButtonPressed() {
+        // 1.Resign textfield to hide keyboard
         textFieldsResignFirstResponder()
+        // 2.Check data was fetch or not
         guard let selectedCurrency = selectedCurrency else {
             let loadMustEnd = Feedback.caution("Henüz data internetten yüklenemedi. Lütfen sonra tekrar deneyiniz ")
             presenter.showFeedback(loadMustEnd)
             clearTextFields()
             return }
-        var textfieldAmount: Double = 0
-        if !textFieldCoin.text!.isEmpty, let amount = Double(textFieldCoin.text!) {
-            textfieldAmount = amount
-        } else if let amount = Double(textFieldCoin.placeholder!) {
-            textfieldAmount = amount
-        } else { fatalError("Every time we must back a value") }
+        // 3. Decide amount
+        let textfieldAmount = decideAmmount()
         let feedback = Feedback.info("Dikkat!! \(selectedCurrency.symbolFrom)'den \(textfieldAmount) adet \(selectedButton == .sell ? "satmak" : "almak") üzeresiniz.")
         let alert2 = ShowFeedBack(feedback: feedback, logic: true) { [self] _ in
             presenter.mainButtonPressed(to: selectedCurrency, for: textfieldAmount, by: selectedButton)
             clearTextFields()
         }
         present(alert2.controller, animated: true)
+    }
+    private func decideAmmount() -> Double {
+        // condition 1 -> buy and text field have value
+        if !textFieldCoin.text!.isEmpty, let amount = Double(textFieldCoin.text!), selectedButton == .buy {
+            return amount
+        } else if let amount = Double(textFieldCoin.placeholder!), selectedButton == .buy { // condition 2 -> buy and text field is empty
+          return amount
+        } else if !textFieldTRY.text!.isEmpty, let amount = Double(textFieldTRY.text!), selectedButton == .sell { // condition 3 -> sell and text field have value
+            return amount
+        } else if selectedButton == .sell {
+            guard let amount = WalletManager.shared.myWallet.value.entities.first(where: { $0.name.lowercased() == selectedCurrency.symbolFrom.lowercased() })?.amount else {return 0 }
+            return amount
+        } else { fatalError("Every time we must back a value") }
     }
     private func clearTextFields() {
         textFieldCoin.text? = ""
@@ -466,9 +479,9 @@ extension TradeView: TradeViewProtocol {
     private func setTextFields() {
         guard let selectedCurrency = selectedCurrency else { return }
         guard let amount = WalletManager.shared.tryEntity?.amount else { return }
-        self.textFieldTRY.placeholder = String(format: "%.5f", amount)
+        self.textFieldTRY.placeholder = "\(String(format: "%.5f", amount)) TRY"
         let availableCoin = amount / selectedCurrency.lastPrice
-        let rounded = Double(round(100000 * availableCoin) / 100000)
+        let rounded = Double((100_000 * availableCoin).rounded(.down) / 100_000)
         self.textFieldCoin.placeholder = String(format: "%.8f", rounded)
     }
 }
@@ -481,4 +494,7 @@ extension TradeView {
         textFieldCoin.resignFirstResponder()
         textFieldTRY.resignFirstResponder()
     }
+}
+extension TradeView: UITextFieldDelegate {
+
 }
